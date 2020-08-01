@@ -8,8 +8,6 @@ const assert = require("assert")
 
 // other bank account stuff
 
-let balance
-
 class Transaction {
   constructor(amount, payee) {
     this.date = new Date()
@@ -26,41 +24,30 @@ class BankAccount {
   }
 
   balance() {
-    function sumTotal(total, num) {
-      return total + num
+    let sum = 0
+    for (let i = 0; i < this.transactions.length; i++) {
+      sum += this.transactions[i].amount
     }
-    return (this.balance = transactions.reduce(sumTotal))
+    return sum
   }
 
-  deposit(amt, payee) {
+  deposit(amt) {
     if (amt > 0) {
-      this.transactions.push(new Transaction(amt, payee))
-      balance = amt
-    } else {
-      return "Input a positive integer, please. Do not make me ask again..."
+      const depositTransaction = new Transaction(amt, "Deposit")
+      this.transactions.push(depositTransaction)
     }
   }
 
   charge(payee, amt) {
-    // balance = amt
-    if (balance - amt > 0) {
-      this.transactions.push(new Transaction(amt, payee))
-    } else if (balance - amt < 0) {
-      console.log("Ya broke, dude...")
+    const currentBalance = this.balance()
+    if (amt <= currentBalance) {
+      const chargeTransaction = new Transaction(-1 * amt, payee)
+      this.transactions.push(chargeTransaction)
     }
   }
 }
 
-// const getPrompt = () => {
-//   BankAccount()
-//   rl.question("account number: ", (startStack) => {
-//     rl.question("owner: ", (endStack) => {
-//       towersOfHanoi(startStack, endStack)
-//       getPrompt()
-//     })
-//   })
-// }
-
+// TESTS
 // 1. Should create Bank account: account number, name, transactions
 // 2. Should create Transaction: is date defined, payee, amount
 // 3. Should deposit correctly
@@ -72,36 +59,84 @@ class BankAccount {
 // 9. Also, 8. should track multiple charges and return accurate balance
 
 if (typeof describe === "function") {
-  describe("BankAccount", () => {
-    it("Should create Bank account: account number, name, transactions", function () {
-      const bankAccount1 = new BankAccount("900-300-200", "Bob Dylan")
-      assert.equal(bankAccount1.accountNumber, "900-300-200")
+  describe("BankAccount", function () {
+    it("should create Bank account: account number, name, transaction", function () {
+      const bankAccount1 = new BankAccount("xx2345", "Bob Dylan")
       assert.equal(bankAccount1.owner, "Bob Dylan")
+      assert.equal(bankAccount1.accountNumber, "xx2345")
       assert.equal(bankAccount1.transactions.length, 0)
+      assert.equal(bankAccount1.balance(), 0)
     })
-    it("should deposit correctly", function () {
-      const arielsBank = new BankAccount("900-300-200", "Ariel")
-      arielsBank.deposit(1, "Flounder")
-      assert.equal(arielsBank.transactions[0].amount, 1)
-      assert.equal(arielsBank.transactions[0].payee, "Flounder")
-      arielsBank.deposit(10, "Sebastian")
-      assert.equal(arielsBank.transactions[1].amount, 10)
-      assert.equal(arielsBank.transactions[1].payee, "Sebastian")
+    it("Should return correct balance", function () {
+      const bankAccount1 = new BankAccount("xx2345", "Bob Dylan")
+      assert.equal(bankAccount1.balance(), 0)
+      bankAccount1.deposit(100)
+      assert.equal(bankAccount1.balance(), 100)
+      bankAccount1.charge("Starbucks", 10)
+      assert.equal(bankAccount1.balance(), 90)
+    })
+    it("Should not allow negative deposit", function () {
+      const bankAccount1 = new BankAccount("xx2345", "Bob Dylan")
+      assert.equal(bankAccount1.balance(), 0)
+      bankAccount1.deposit(100)
+      assert.equal(bankAccount1.balance(), 100)
+      bankAccount1.deposit(-30)
+      assert.equal(bankAccount1.balance(), 100)
+    })
+    it("Should prevent overdraft", function () {
+      const bankAccount1 = new BankAccount("xx2345", "Bob Dylan")
+      assert.equal(bankAccount1.balance(), 0)
+      bankAccount1.charge("Wayfair", 45)
+      assert.equal(bankAccount1.balance(), 0)
+    })
+    it("Should allow a refund", function () {
+      const bankAccount1 = new BankAccount("xx2345", "Bob Dylan")
+      assert.equal(bankAccount1.balance(), 0)
+      bankAccount1.charge("Home Depot", -65)
+      assert.equal(bankAccount1.balance(), 65)
     })
   })
-
   describe("Transaction", function () {
-    it("Should have date, payee, amount", function () {
+    it("Should create a transaction correctly for deposit", function () {
       const transaction1 = new Transaction(50, "Dob Bylan")
       assert.equal(transaction1.amount, 50)
       assert.equal(transaction1.payee, "Dob Bylan")
       assert.notEqual(transaction1.date, undefined)
       assert.notEqual(transaction1.date, null)
     })
+    it("Should create a transaction correctly for a charge", function () {
+      const transaction1 = new Transaction(-50, "Dob Bylan")
+      assert.equal(transaction1.amount, -50)
+      assert.equal(transaction1.payee, "Dob Bylan")
+      assert.notEqual(transaction1.date, undefined)
+      assert.notEqual(transaction1.date, null)
+    })
   })
-
-  // Should deposit correctly
-  // deposit(amt, payee) - This method takes in a single input, the deposit amount. This method should create a new transaction representing the deposit, and add it to the transactions array.
-  // create a Bank Account and call it's deposit method// take in amount and payee
-  // should invoke transaction and transfer an amount and payee and push() new transaction into the transaction array
+  describe("Multiple Transactions", function () {
+    const bankAccount2 = new BankAccount("900-222-111", "Rupert")
+    it("should create new account correctly", function () {
+      assert.equal(bankAccount2.owner, "Rupert")
+      assert.equal(bankAccount2.accountNumber, "900-222-111")
+      assert.equal(bankAccount2.balance(), 0)
+    })
+    it("should allow you to deposit multiple times and clear account", function () {
+      bankAccount2.deposit(30)
+      bankAccount2.deposit(20)
+      bankAccount2.deposit(-3)
+      bankAccount2.deposit(34.25)
+      bankAccount2.deposit(10000.45)
+      assert.equal(10084.7, bankAccount2.balance())
+      bankAccount2.charge("Clear", 10084.7)
+      assert.equal(0, bankAccount2.balance())
+    })
+    it("should balance account with multiple charges and count transactions", function () {
+      bankAccount2.deposit(10000)
+      bankAccount2.charge("target", 40)
+      bankAccount2.charge("pizza hut", 10.32)
+      bankAccount2.charge("HEB", 40)
+      bankAccount2.charge("Academy", -20)
+      assert.equal(9929.68, bankAccount2.balance())
+      assert.equal(10, bankAccount2.transactions.length)
+    })
+  })
 }
