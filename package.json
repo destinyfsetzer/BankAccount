@@ -4,7 +4,7 @@
   "description": "1. create repo 2. clone 3. cd into 4. npm init",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --no-timeouts"
+    "test": "mocha"
   },
   "keywords": [],
   "author": "",

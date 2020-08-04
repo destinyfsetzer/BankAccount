@@ -4,7 +4,7 @@
     "commonjs": true,
     "es2020": true
   },
-  "extends": ["airbnb", "prettier", "plugin:node/recommended"],
+  "extends": ["airbnb", "prettier"],
   "rules": {
     "prettier/prettier": "error",
     "max-classes-per-file": 0,
@@ -18,7 +18,8 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": 11
+    "ecmaVersion": 11,
+    "sourceType": "module"
   },
   "plugins": ["react", "prettier"]
 }
